@@ -17,7 +17,8 @@
   * `scrapy genspider <spider name> <spider url>`
 
 1. Define what we are looking for in items.py `scrapy_demo/scrapy_demo/items.py`
-```python import scrapy
+```python
+import scrapy
 
   from scrapy.item import Item, Field
 
