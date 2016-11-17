@@ -72,5 +72,3 @@ import scrapy
 ## Back to the Spider
 
   * So now that we have the desired XPaths we can set up the spider
-
-  * 
