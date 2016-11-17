@@ -267,14 +267,13 @@ class ScrapyDemoPipeline(object):
     * `select * from awayteamrush;`
   * And Bam! We have our stats in our database!
 
-  `     
-  rusher      | car | yds | avg | td | longest
-  -----------------+-----+-----+-----+----+---------
-   Kapri Bibbs     | --  | --  | --  | -- | --
-   Devontae Booker | 24  | 76  | 3.2 | 0  | 11
-   Trevor Siemian  | 6   | 5   | 0.8 | 0  | 3
-  (3 rows)
-  `
+  `rusher      | car | yds | avg | td | longest`
+  `-----------------+-----+-----+-----+----+---------`
+  `Kapri Bibbs     | --  | --  | --  | -- | --`
+  `Devontae Booker | 24  | 76  | 3.2 | 0  | 11`
+  `Trevor Siemian  | 6   | 5   | 0.8 | 0  | 3`
+  (`3 rows)`
+
 
 
 ##Thanks!
