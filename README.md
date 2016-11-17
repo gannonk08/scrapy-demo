@@ -72,3 +72,108 @@ import scrapy
 ## Back to the Spider
 
   * So now that we have the desired XPaths we can set up the spider
+
+  * From the generator we have some base codes to work off of however we need move some files around and attach them before we get things going.
+
+### Create Item
+
+  * First move the `items.py` into the spiders folder in that `items` folder create a class called `awayTeamRushItem`. The file should appear as so:
+
+  ```python
+  import scrapy
+
+  from scrapy.item import Item, Field
+
+  class awayTeamRushItem(Item):
+      test = 'this is a test item'
+      rusher = Field()
+      car = Field()
+      yds = Field()
+      avg = Field()
+      td = Field()
+      longest = Field()
+  ```
+  * Now lets import this class to the espnSpider and set it up
+
+### Start URL and Rules
+
+  * The `start_urls` are specific urls which the spider will crawl through based on some rules, for now we wont get into rules but they can be used to go through paginated results, into links to other webpages etc. So setting that to the espn url our file should look something like this:
+
+  ```python
+  import scrapy
+  from scrapy.linkextractors import LinkExtractor
+  from scrapy.spiders import CrawlSpider, Rule
+  from scrapy.item import Item, Field
+
+
+  from items import awayTeamRushItem
+  import logging
+  import re
+
+  class EspnspiderSpider(scrapy.Spider):
+      name = "espnSpider"
+      allowed_domains = ["espn.com"]
+      start_urls = (
+          'http://www.espn.com/nfl/boxscore?gameId=400874586',
+      )
+
+      rules = (
+          Rule(LinkExtractor(), callback='parse_item', follow=False),
+      )
+  ```
+### Parsing Data
+
+  * So probably the most important part to a spider is how you parse through the HTML on the web page
+
+  * The `def parse(self, response):` function uses generators to create instances of the `awayTeamRushItem` add data to that instance and then add it to a pipeline, which can connect to a database, write it to a json, csv, etc. a while pausing the `for` loop
+
+  * To parse our rushers lets set up a for in loop to go through each rusher and create an instance of the `awayTeamRushItem`
+
+  ```python
+  def parse(self, response):
+      rushers = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[1]/a/span[1]/text()').extract()
+
+      for rusher in rushers:
+          awayItem = awayTeamRushItem()
+
+          awayItem['rusher'] = rusher
+
+          yield awayItem
+  ```
+  * So now that you can see the process for an individual stat lets add the rest so the parse function should look something like this:
+
+  ```python
+  global awayItem
+    awayItem = awayTeamRushItem()
+
+    def parse(self, response):
+        rushers = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[1]/a/span[1]/text()').extract()
+
+        carries = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[2]/text()').extract()
+
+        yards = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[3]/text()').extract()
+
+        averages = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[4]/text()').extract()
+
+        touchdowns = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[5]/text()').extract()
+
+        longs = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[6]/text()').extract()
+
+        awayItemIndex = 0
+
+        for rusher in rushers:
+            awayItem = awayTeamRushItem()
+
+            awayItem['car'] = carries[awayItemIndex]
+            awayItem['yds'] = yards[awayItemIndex]
+            awayItem['avg'] = averages[awayItemIndex]
+            awayItem['td'] = touchdowns[awayItemIndex]
+            awayItem['longest'] = longs[awayItemIndex]
+            awayItem['rusher'] = rusher
+
+            awayItemIndex+=1
+
+            yield awayItem
+
+  ```
+## Scraping to a PostGreSQL DataBase via pipelines
