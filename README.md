@@ -1,4 +1,5 @@
 #Scrapy Demo
+This repo demonstrates the basic capabilities of Scrapy an python based web-scraping package
 
 ##Initial Scrapy Set Up:
 1. Install Scrapy
@@ -67,3 +68,9 @@ import scrapy
   * now try the one with the wild cards and notice how it returns "all" of the data cells in the table, with the exception of the player name since that has another level of HTML elements in it, for now we will skip that. You should see something similar to the picture below:
 
   ![Scrapy Shell ](writeup_images/scrapy_shell.png "Logo Title Text 1")
+
+## Back to the Spider
+
+  * So now that we have the desired XPaths we can set up the spider
+
+  * 

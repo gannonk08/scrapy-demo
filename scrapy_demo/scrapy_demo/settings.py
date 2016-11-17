@@ -14,6 +14,14 @@ BOT_NAME = 'scrapy_demo'
 SPIDER_MODULES = ['scrapy_demo.spiders']
 NEWSPIDER_MODULE = 'scrapy_demo.spiders'
 
+DOWNLOAD_DELAY = 5
+
+DOWNLOADER_MIDDLEWARES = {'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,}
+
+RETRY_TIMES = 2
+RETRY_HTTP_CODES = [500, 502, 503, 504, 400, 403, 404, 408]
+
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scrapy_demo (+http://www.yourdomain.com)'
