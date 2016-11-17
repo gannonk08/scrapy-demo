@@ -3,7 +3,6 @@ import scrapy
 from scrapy.item import Item, Field
 
 class awayTeamRushItem(Item):
-    test = 'this is a test item'
     rusher = Field()
     car = Field()
     yds = Field()

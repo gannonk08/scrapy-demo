@@ -77,7 +77,11 @@ import scrapy
 
 ### Create Item
 
-  * First move the `items.py` into the spiders folder in that `items` folder create a class called `awayTeamRushItem`. The file should appear as so:
+  * First move the `items.py` into the spiders folder so your file structure looks like this:
+
+    ![Scrapy Shell ](writeup_images/File_Structure.png "Logo Title Text 1")
+
+  * In that `items` file create a class called `awayTeamRushItem`. The file should appear as so:
 
   ```python
   import scrapy
@@ -130,7 +134,7 @@ import scrapy
   * To parse our rushers lets set up a for in loop to go through each rusher and create an instance of the `awayTeamRushItem`
 
   ```python
-  def parse(self, response):
+    def parse(self, response):
       rushers = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[1]/a/span[1]/text()').extract()
 
       for rusher in rushers:
@@ -147,33 +151,108 @@ import scrapy
     awayItem = awayTeamRushItem()
 
     def parse(self, response):
-        rushers = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[1]/a/span[1]/text()').extract()
+          rushers = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[1]/a/span[1]/text()').extract()
 
-        carries = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[2]/text()').extract()
+          carries = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[2]/text()').extract()
 
-        yards = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[3]/text()').extract()
+          yards = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[3]/text()').extract()
 
-        averages = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[4]/text()').extract()
+          averages = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[4]/text()').extract()
 
-        touchdowns = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[5]/text()').extract()
+          touchdowns = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[5]/text()').extract()
 
-        longs = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[6]/text()').extract()
+          longs = response.xpath('//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/td[6]/text()').extract()
 
-        awayItemIndex = 0
+          awayItemIndex = 0
 
-        for rusher in rushers:
-            awayItem = awayTeamRushItem()
+          for rusher in rushers:
+              awayItem = awayTeamRushItem()
 
-            awayItem['car'] = carries[awayItemIndex]
-            awayItem['yds'] = yards[awayItemIndex]
-            awayItem['avg'] = averages[awayItemIndex]
-            awayItem['td'] = touchdowns[awayItemIndex]
-            awayItem['longest'] = longs[awayItemIndex]
-            awayItem['rusher'] = rusher
+              awayItem['car'] = str(carries[awayItemIndex])
+              awayItem['yds'] = str(yards[awayItemIndex])
+              awayItem['avg'] = str(averages[awayItemIndex])
+              awayItem['td'] = str(touchdowns[awayItemIndex])
+              awayItem['longest'] = str(longs[awayItemIndex])
+              awayItem['rusher'] = str(rusher)
 
-            awayItemIndex+=1
+              awayItemIndex+=1
 
-            yield awayItem
-
+              yield awayItem
   ```
+
 ## Scraping to a PostGreSQL DataBase via pipelines
+
+As mentioned above pipelines connect the spider to database and other forms of storing and or handling the scraped data. For this demo we will add the data to a PostGreSQL database.
+
+1.  Install PostGreSQL Python wrapper
+  * `pip install psycopg2`
+
+1.  Setup the PSQL DB in the commandline
+  * `createdb scraping_demo`
+  * `CREATE TABLE awayTeamRush (rusher varchar(40), car varchar(40), yds varchar(40), avg varchar(40), td varchar(40), longest varchar(40));`
+
+* Now lets add a connection from pipeline to the spider in the `settings.py` add the following changing the database to the name you choose for the db
+
+```python
+
+DOWNLOAD_DELAY = 5
+
+DOWNLOADER_MIDDLEWARES = {'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,}
+
+RETRY_TIMES = 2
+RETRY_HTTP_CODES = [500, 502, 503, 504, 400, 403, 404, 408]
+
+DATABASE = {
+    'drivername': 'postgres',
+    'host': 'localhost',
+    'port': '5432',
+    'username': 'Gannon',
+    'password': '',
+    'database': 'scraping_demo'
+}
+
+ITEM_PIPELINES = {
+  'scrapy_demo.pipelines.ScrapyDemoPipeline': 300
+}
+```
+* Now that the spider is feeding the pipeline we need to tell psycopg2 how to handle the data
+
+* To do this we need to set up an init function within the pipeline to pass the db parameters to psycopg2 like so:
+
+```python
+
+import psycopg2
+import logging
+from spiders.items import awayTeamRushItem
+from scrapy.conf import settings
+from scrapy.exceptions import DropItem
+
+
+class ScrapyDemoPipeline(object):
+  def __init__(self):
+    self.connection = psycopg2.connect(host='localhost', database='scraping_demo', user='<psql username>')
+    self.cursor = self.connection.cursor()
+```
+* The last component of the pipeline is passing the yields from the parse generator into the database. Well add a conditional so that we can add different items to different tables as we build out the app further, the whole pipeline should look like this now:
+
+```python
+class ScrapyDemoPipeline(object):
+  def __init__(self):
+    self.connection = psycopg2.connect(host='localhost', database='scraping_demo', user='<psql username>')
+    self.cursor = self.connection.cursor()
+
+  def process_item(self, item, spider):
+    try:
+      if type(item) is awayTeamRushItem:
+        table = """awayteamrush"""
+        self.cursor.execute("""INSERT INTO """ + table + """  (rusher, car, yds, avg, td, longest) VALUES(%s, %s, %s, %s, %s, %s)""", (item.get('rusher'), item.get('car'), item.get('yds'), item.get('avg'), item.get('td'), item.get('longest')))
+
+      self.connection.commit()
+      self.cursor.fetchall()
+
+    except psycopg2.DatabaseError, e:
+      print "Error: %s" % e
+    return item
+```
+##Thanks!
+  Thanks for checking this demo out hopefully this inspires you to create some sweet apps!

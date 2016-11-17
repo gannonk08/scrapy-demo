@@ -40,12 +40,12 @@ class EspnspiderSpider(scrapy.Spider):
         for rusher in rushers:
             awayItem = awayTeamRushItem()
 
-            awayItem['car'] = carries[awayItemIndex]
-            awayItem['yds'] = yards[awayItemIndex]
-            awayItem['avg'] = averages[awayItemIndex]
-            awayItem['td'] = touchdowns[awayItemIndex]
-            awayItem['longest'] = longs[awayItemIndex]
-            awayItem['rusher'] = rusher
+            awayItem['car'] = str(carries[awayItemIndex])
+            awayItem['yds'] = str(yards[awayItemIndex])
+            awayItem['avg'] = str(averages[awayItemIndex])
+            awayItem['td'] = str(touchdowns[awayItemIndex])
+            awayItem['longest'] = str(longs[awayItemIndex])
+            awayItem['rusher'] = str(rusher)
 
             awayItemIndex+=1
 

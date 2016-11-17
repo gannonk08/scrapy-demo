@@ -21,6 +21,19 @@ DOWNLOADER_MIDDLEWARES = {'scrapy.downloadermiddlewares.useragent.UserAgentMiddl
 RETRY_TIMES = 2
 RETRY_HTTP_CODES = [500, 502, 503, 504, 400, 403, 404, 408]
 
+DATABASE = {
+    'drivername': 'postgres',
+    'host': 'localhost',
+    'port': '5432',
+    'username': 'Gannon',
+    'password': '',
+    'database': 'scraping_demo'
+}
+
+ITEM_PIPELINES = {
+  'scrapy_demo.pipelines.ScrapyDemoPipeline': 300
+}
+
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
