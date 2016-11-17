@@ -2,11 +2,11 @@
 This repo demonstrates the basic capabilities of Scrapy an python based web-scraping package
 
 ##Initial Scrapy Set Up:
+1. Create a virtual envirnoment (this will install dependencies specific to this project and not to our machine)
+  * `virtualenv env`
+
 1. Install Scrapy
   * `pip install scrapy==1.0.3`
-
-1. Create a virtual envirnoment
-  * `virtualenv env`
 
 1. Start new project
   * `scrapy startproject <project name>`
@@ -42,7 +42,7 @@ import scrapy
       longest = Field()
 ```
 ## Exploring websites with XPath
-  * Each html item has a unique XPath
+  * Each html item has a unique XPath, Xpath is a way of logically organizing and selecting html with paths as opposed those in jQuery, Xpath is its own beast so we will just scrap (shitty pun intended) the surface for this tutorial
 
   * This XPath is fairly logical, take the XPath for DeVontae Booker's carries:
   `//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/tr[2]/td[2]`
@@ -56,7 +56,7 @@ import scrapy
     * Simple! Use a wildcard (*) in the tr and td that are specific to the individual data point like below:
 
       `//*[@id="gamepackage-rushing"]/div/div[1]/div/div/table/tbody/*/*`
-  * Okay so lets test this out, we have two options we have xpath in the console or scrapy shell, I will go over scrapy shell since it is more related to our project
+  * Okay so lets test this out, we have two options we have XPath in the console or scrapy shell, I will go over scrapy shell since it is more related to our project
 
   * Back in the command line run the following command:
   `scrapy shell http://www.espn.com/nfl/boxscore\?gameId\=400874586`
@@ -188,7 +188,9 @@ As mentioned above pipelines connect the spider to database and other forms of s
   * `pip install psycopg2`
 
 1.  Setup the PSQL DB in the commandline
+  * `psql`
   * `createdb scraping_demo`
+  * `\c scraping_demo`
   * `CREATE TABLE awayTeamRush (rusher varchar(40), car varchar(40), yds varchar(40), avg varchar(40), td varchar(40), longest varchar(40));`
 
 * Now lets add a connection from pipeline to the spider in the `settings.py` add the following changing the database to the name you choose for the db
@@ -254,5 +256,26 @@ class ScrapyDemoPipeline(object):
       print "Error: %s" % e
     return item
 ```
+
+## Checking the results
+  * Run the crawler in the CLI with the espnSpider
+    `scrapy crawl espnSpider`
+  * If all looks well errors wise lets head on over to our database in PSQL and check to see if the pipeline made connection to our DB and inserted the items
+    * `psql`
+    * `scraping_demo`
+    * `\c scraping_demo`
+    * `select * from awayteamrush;`
+  * And Bam! We have our stats in our database!
+
+  `     
+  rusher      | car | yds | avg | td | longest
+  -----------------+-----+-----+-----+----+---------
+   Kapri Bibbs     | --  | --  | --  | -- | --
+   Devontae Booker | 24  | 76  | 3.2 | 0  | 11
+   Trevor Siemian  | 6   | 5   | 0.8 | 0  | 3
+  (3 rows)
+  `
+
+
 ##Thanks!
   Thanks for checking this demo out hopefully this inspires you to create some sweet apps!
